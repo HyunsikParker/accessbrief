@@ -1,0 +1,15 @@
+{
+  "name": "accessbrief",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/accessbrief.test.mjs",
+    "skill": "node skills/accessbrief/scripts/accessbrief.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

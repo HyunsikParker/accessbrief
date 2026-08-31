@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A synthetic, privacy-first accessibility barrier reporting demo.">
+    <title>AccessBrief</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="product-bar">
+      <a class="brand" href="#main">AccessBrief</a>
+    </header>
+
+    <main id="main" class="page-shell">
+      <ol id="workflow" class="lifecycle" aria-label="Report lifecycle">
+        <li data-state="reported"><span>01</span> Report</li>
+        <li data-state="verified"><span>02</span> Verify</li>
+        <li data-state="confirmed"><span>03</span> Confirm</li>
+        <li data-state="published"><span>04</span> Publish</li>
+      </ol>
+
+      <header class="task-heading">
+        <h1>New accessibility report</h1>
+        <p>Checkout <span aria-hidden="true">·</span> Current page</p>
+      </header>
+
+      <div class="workbench">
+        <section class="composer" aria-labelledby="composer-heading">
+          <h2 id="composer-heading">Describe the barrier</h2>
+          <p class="helper">We check the current page and remove contact details before anything is shared.</p>
+
+          <section class="page-evidence" aria-labelledby="page-evidence-heading">
+            <div>
+              <p class="eyebrow">Current page evidence</p>
+              <h3 id="page-evidence-heading">Checkout action</h3>
+              <p>The rendered control has no accessible name.</p>
+            </div>
+            <div class="synthetic-page" data-accessbrief-page="checkout">
+              <span>Checkout</span>
+              <div class="evidence-action">
+                <button
+                  id="checkout"
+                  class="evidence-target"
+                  type="button"
+                  data-accessbrief-target="checkout_button"
+                  data-accessbrief-aliases="checkout button|place order button|결제 button"
+                ></button>
+                <span class="evidence-arrow" aria-hidden="true">→</span>
+              </div>
+            </div>
+          </section>
+
+          <form id="report-form" novalidate>
+            <label for="report-input">Report</label>
+            <textarea id="report-input" name="report" rows="7" required>The checkout button has no label for my screen reader.</textarea>
+            <div class="composer-actions">
+              <button class="primary" type="submit">Review report</button>
+              <button id="clear-button" class="secondary" type="button">Reset</button>
+            </div>
+          </form>
+          <p id="report-status" class="report-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        </section>
+
+        <aside class="report-sheet" aria-labelledby="report-sheet-heading">
+          <h2 id="report-sheet-heading">Verified report</h2>
+          <dl id="evidence-list">
+            <div><span aria-hidden="true">01</span><dt>Issue</dt><dd id="barrier-value">—</dd></div>
+            <div><span aria-hidden="true">02</span><dt>Element</dt><dd id="element-value">—</dd></div>
+            <div><span aria-hidden="true">03</span><dt>Evidence</dt><dd id="page-value">—</dd></div>
+            <div><span aria-hidden="true">04</span><dt>Privacy</dt><dd id="privacy-value">Contact details removed</dd></div>
+          </dl>
+          <p id="proof-line" class="proof-line">Verified against the current page.</p>
+
+          <section class="confirmation" aria-labelledby="confirmation-heading">
+            <h2 id="confirmation-heading">Publish this report?</h2>
+            <button id="confirm-button" class="primary confirm" type="button">Yes, publish this accessibility report.</button>
+            <button id="cancel-button" class="secondary cancel" type="button">Cancel</button>
+            <p id="receipt-message" class="receipt-message" role="status" aria-live="polite"></p>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer><span aria-hidden="true"></span>Local simulation · No account · No network</footer>
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>
