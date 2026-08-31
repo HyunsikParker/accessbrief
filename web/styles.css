@@ -1,14 +1,15 @@
 :root {
   color-scheme: light;
-  --canvas: #f3f5f2;
+  --canvas: #f7f9fc;
   --surface: #ffffff;
-  --ink: #17211e;
-  --muted: #5a6963;
-  --rule: #cad5cf;
-  --accent: #0b5d4b;
-  --wash: #e6f0eb;
-  --action: #0b5d4b;
-  --action-hover: #084b3d;
+  --ink: #172033;
+  --muted: #566273;
+  --rule: #d5dde8;
+  --brand: #0f172a;
+  --accent: #2563eb;
+  --wash: #eff6ff;
+  --action: #2563eb;
+  --action-hover: #1d4ed8;
   --on-action: #ffffff;
   --frame: min(91rem, calc(100vw - 4rem));
 }
@@ -36,7 +37,7 @@ textarea { touch-action: manipulation; }
 
 .product-bar {
   align-items: center;
-  background: var(--action);
+  background: var(--brand);
   display: flex;
   height: 4.5rem;
   padding: 0 max(2rem, calc((100vw - 91rem) / 2));
