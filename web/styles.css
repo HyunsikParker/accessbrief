@@ -110,6 +110,38 @@ textarea { touch-action: manipulation; }
 
 .task-heading p span { margin: 0 0.35rem; }
 
+.skill-proof {
+  align-items: start;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  display: grid;
+  gap: 1rem 1.5rem;
+  grid-template-columns: minmax(15rem, 1fr) auto;
+  margin-bottom: 1.25rem;
+  padding: 1.15rem 1.25rem;
+}
+
+.skill-proof[hidden] { display: none; }
+
+.skill-proof h2,
+.skill-proof p { margin: 0; }
+
+.skill-proof h2 { font-size: 1.1rem; }
+
+.skill-proof > div > p:last-child {
+  color: var(--muted);
+  margin-top: 0.35rem;
+}
+
+.skill-proof .eyebrow {
+  color: var(--brand);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
 .workbench {
   align-items: stretch;
   display: grid;
@@ -344,6 +376,50 @@ dt {
 
 dd { font-size: 0.95rem; }
 
+.skill-proof .skill-proof-results {
+  border-top: 1px solid var(--rule);
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding-top: 0.9rem;
+}
+
+.skill-proof .skill-proof-results > div {
+  border-bottom: 0;
+  border-left: 1px solid var(--rule);
+  display: block;
+  min-height: 0;
+  min-width: 0;
+  padding: 0 0.85rem;
+}
+
+.skill-proof .skill-proof-results > div:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.skill-proof .skill-proof-results dt,
+.skill-proof .skill-proof-results dd {
+  border: 0;
+  display: block;
+  padding: 0;
+}
+
+.skill-proof .skill-proof-results dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.skill-proof .skill-proof-results dd {
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  overflow-wrap: anywhere;
+}
+
 .proof-line {
   border-bottom: 2px solid var(--brand);
   margin: 0;
@@ -392,6 +468,16 @@ footer span {
   :root { --frame: calc(100vw - 2rem); }
   .product-bar { height: 4rem; padding-inline: 1rem; }
   .page-shell { padding-top: 1.5rem; }
+  .skill-proof { grid-template-columns: 1fr; }
+  .skill-proof .skill-proof-results {
+    grid-column: 1;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 1rem;
+  }
+  .skill-proof .skill-proof-results > div:nth-child(3) {
+    border-left: 0;
+    padding-left: 0;
+  }
   .lifecycle {
     gap: 0.6rem 1rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));

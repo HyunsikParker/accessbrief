@@ -27,6 +27,21 @@
         <p>Checkout <span aria-hidden="true">·</span> Current page</p>
       </header>
 
+      <section id="skill-proof" class="skill-proof" aria-labelledby="skill-proof-heading" hidden>
+        <div>
+          <p class="eyebrow">Developer proof</p>
+          <h2 id="skill-proof-heading">Agent Skill live run</h2>
+          <p>Executes the shipped Skill entry point against the frozen checkout case.</p>
+        </div>
+        <button id="skill-proof-button" class="secondary" type="button">Run Agent Skill</button>
+        <dl class="skill-proof-results">
+          <div><dt>Status</dt><dd id="skill-proof-status">Not run</dd></div>
+          <div><dt>Target</dt><dd id="skill-proof-target">—</dd></div>
+          <div><dt>Policy</dt><dd id="skill-proof-policy">—</dd></div>
+          <div><dt>Receipt</dt><dd id="skill-proof-receipt">—</dd></div>
+        </dl>
+      </section>
+
       <div class="workbench">
         <section class="composer" aria-labelledby="composer-heading">
           <h2 id="composer-heading">Describe the barrier</h2>

@@ -14,6 +14,12 @@ const barrierValue = document.querySelector("#barrier-value");
 const elementValue = document.querySelector("#element-value");
 const pageValue = document.querySelector("#page-value");
 const lifecycleItems = [...document.querySelectorAll(".lifecycle li")];
+const skillProof = document.querySelector("#skill-proof");
+const skillProofButton = document.querySelector("#skill-proof-button");
+const skillProofStatus = document.querySelector("#skill-proof-status");
+const skillProofTarget = document.querySelector("#skill-proof-target");
+const skillProofPolicy = document.querySelector("#skill-proof-policy");
+const skillProofReceipt = document.querySelector("#skill-proof-receipt");
 const pageContext = inventoryFromDocument(document);
 
 let session = null;
@@ -78,6 +84,27 @@ function reviewReport() {
   render();
 }
 
+async function runSkillProof() {
+  skillProofButton.disabled = true;
+  skillProofStatus.textContent = "Running";
+  skillProofTarget.textContent = "—";
+  skillProofPolicy.textContent = "—";
+  skillProofReceipt.textContent = "—";
+  try {
+    const response = await fetch("/api/skill-proof", { method: "POST" });
+    if (!response.ok) throw new Error("skill proof unavailable");
+    const result = await response.json();
+    skillProofStatus.textContent = result.status;
+    skillProofTarget.textContent = result.target;
+    skillProofPolicy.textContent = `${result.confirmation} confirmation · ${result.privacy}`;
+    skillProofReceipt.textContent = result.receiptId;
+  } catch {
+    skillProofStatus.textContent = "Unavailable";
+  } finally {
+    skillProofButton.disabled = false;
+  }
+}
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   reviewReport();
@@ -100,6 +127,11 @@ cancelButton.addEventListener("click", async () => {
   session = await confirmReport(session, "Cancel");
   render();
 });
+
+if (new URLSearchParams(window.location.search).get("skill-proof") === "1") {
+  skillProof.hidden = false;
+  skillProofButton.addEventListener("click", runSkillProof);
+}
 
 input.value = sampleReport;
 reviewReport();

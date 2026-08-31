@@ -23,13 +23,19 @@ npm start
 
 Open `http://127.0.0.1:4173/`. The server binds only to localhost and exposes a fixed file allowlist.
 
+To verify the shipped Agent Skill through the same local server, open
+`http://127.0.0.1:4173/?skill-proof=1` and choose **Run Agent Skill**. The
+proof endpoint accepts no request body and returns only the frozen case status,
+target, live synthetic-identity redaction and confirmation checks, and receipt
+identifier.
+
 ## Test
 
 ```sh
 npm test
 ```
 
-The tests cover real DOM evidence derivation, exact confirmation, deterministic receipts, identity redaction, and prompt-injection blocking.
+The tests cover real DOM evidence derivation, exact confirmation, deterministic receipts, identity redaction, prompt-injection blocking, and the live local Skill proof boundary.
 
 ## Run the Agent Skill
 

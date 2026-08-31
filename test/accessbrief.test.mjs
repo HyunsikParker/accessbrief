@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
@@ -46,4 +47,52 @@ test("redacts identity details and blocks prompt injection", () => {
   });
   assert.equal(injection.status, "blocked");
   assert.equal(injection.reason, "inert_prompt_instruction");
+});
+
+test("runs the shipped Agent Skill through a fixed local proof endpoint", async () => {
+  const port = 43173;
+  const server = spawn(process.execPath, [resolve(ROOT, "server.mjs"), "--port", String(port)], {
+    cwd: ROOT,
+    env: {},
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  await new Promise((resolveReady, rejectReady) => {
+    const timer = setTimeout(() => rejectReady(new Error("server start timeout")), 5_000);
+    server.once("error", rejectReady);
+    server.stdout.once("data", () => {
+      clearTimeout(timer);
+      resolveReady();
+    });
+  });
+  try {
+    const getResponse = await fetch(`http://127.0.0.1:${port}/api/skill-proof`);
+    assert.equal(getResponse.status, 405);
+    assert.equal(getResponse.headers.get("allow"), "POST");
+
+    const bodyResponse = await fetch(`http://127.0.0.1:${port}/api/skill-proof`, { method: "POST", body: "x" });
+    assert.equal(bodyResponse.status, 413);
+
+    const [first, second] = await Promise.all([
+      fetch(`http://127.0.0.1:${port}/api/skill-proof`, { method: "POST" }),
+      fetch(`http://127.0.0.1:${port}/api/skill-proof`, { method: "POST" }),
+    ]);
+    assert.deepEqual([first.status, second.status].sort(), [200, 429]);
+    const success = first.status === 200 ? first : second;
+    const result = await success.json();
+    assert.deepEqual(result, {
+      status: "published",
+      target: "checkout_button",
+      evidenceSource: "local_dom_inventory",
+      privacy: "synthetic identity removed",
+      confirmation: "explicit",
+      receiptId: "ab_61c465e00823df42546bd359",
+    });
+    const responseText = JSON.stringify(result);
+    assert.doesNotMatch(responseText, /Example Person|demo\.person@example\.invalid|quotedInput|report/);
+    for (const root of [`${String.fromCharCode(47)}Users${String.fromCharCode(47)}`, `${String.fromCharCode(47)}Volumes${String.fromCharCode(47)}`]) {
+      assert.equal(responseText.includes(root), false);
+    }
+  } finally {
+    server.kill("SIGTERM");
+  }
 });
