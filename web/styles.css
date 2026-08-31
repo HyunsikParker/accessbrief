@@ -1,15 +1,15 @@
 :root {
   color-scheme: light;
-  --canvas: #f5f1e8;
-  --surface: #fffcf7;
-  --ink: #17191d;
-  --muted: #53606f;
-  --rule: #d8d0c2;
-  --accent: #b94732;
-  --wash: #f8ece8;
-  --action: var(--ink);
-  --action-hover: #2b2e34;
-  --on-action: var(--surface);
+  --canvas: #f3f5f2;
+  --surface: #ffffff;
+  --ink: #17211e;
+  --muted: #5a6963;
+  --rule: #cad5cf;
+  --accent: #0b5d4b;
+  --wash: #e6f0eb;
+  --action: #0b5d4b;
+  --action-hover: #084b3d;
+  --on-action: #ffffff;
   --frame: min(91rem, calc(100vw - 4rem));
 }
 
