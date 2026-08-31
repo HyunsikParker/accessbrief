@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f1f0ea">
     <meta name="description" content="A synthetic, privacy-first accessibility barrier reporting demo.">
     <title>AccessBrief</title>
     <link rel="icon" href="data:,">
@@ -54,7 +55,7 @@
 
           <form id="report-form" novalidate>
             <label for="report-input">Report</label>
-            <textarea id="report-input" name="report" rows="7" required>The checkout button has no label for my screen reader.</textarea>
+            <textarea id="report-input" name="report" rows="5" autocomplete="off" required>The checkout button has no label for my screen reader.</textarea>
             <div class="composer-actions">
               <button class="primary" type="submit">Review report</button>
               <button id="clear-button" class="secondary" type="button">Reset</button>
