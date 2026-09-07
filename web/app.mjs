@@ -1,6 +1,8 @@
-import { beginReport, confirmReport, CONFIRMATION_PHRASE } from "../src/core.mjs";
-import { inventoryFromDocument } from "../src/dom-inventory.mjs";
-import { sampleReport } from "../src/demo-data.mjs";
+import { beginReport, confirmReport, CONFIRMATION_PHRASE } from "./src/core.mjs";
+import { inventoryFromDocument } from "./src/dom-inventory.mjs";
+import { sampleReport } from "./src/demo-data.mjs";
+
+const localSkillAvailable = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 
 const form = document.querySelector("#report-form");
 const input = document.querySelector("#report-input");
@@ -73,7 +75,7 @@ function render() {
     reportStatus.textContent = "No duplicate publication was created.";
     receiptMessage.textContent = `Existing receipt ${session.duplicateOf}`;
   } else if (session.status === "published") {
-    proofLine.textContent = "Published after explicit confirmation.";
+    proofLine.textContent = "Local receipt created after explicit confirmation.";
     receiptMessage.textContent = `Receipt ${session.receipt.receiptId}`;
   }
 }
@@ -85,6 +87,7 @@ function reviewReport() {
 }
 
 async function runSkillProof() {
+  if (!localSkillAvailable) return;
   skillProofButton.disabled = true;
   skillProofStatus.textContent = "Running";
   skillProofTarget.textContent = "—";
@@ -128,7 +131,7 @@ cancelButton.addEventListener("click", async () => {
   render();
 });
 
-if (new URLSearchParams(window.location.search).get("skill-proof") === "1") {
+if (localSkillAvailable && new URLSearchParams(window.location.search).get("skill-proof") === "1") {
   skillProof.hidden = false;
   skillProofButton.addEventListener("click", runSkillProof);
 }

@@ -17,6 +17,12 @@ AccessBrief turns a spoken or typed accessibility barrier report into evidence t
 
 ## Run the web demonstration
 
+[Open the browser demo](https://hyunsikparker.github.io/accessbrief/). It runs on
+the synthetic page without installation. Confirmation creates an in-tab receipt;
+it does not send a report anywhere. The Agent Skill proof requires the local server.
+
+For local use:
+
 ```sh
 npm start
 ```

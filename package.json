@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "build": "node scripts/build.mjs",
     "start": "node server.mjs",
     "test": "node --test test/accessbrief.test.mjs",
     "skill": "node skills/accessbrief/scripts/accessbrief.mjs"

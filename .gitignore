@@ -4,6 +4,7 @@
 *.log
 *.token
 node_modules/
+dist/
 runtime/
 audit_*.mjs
 run*_falsifier.mjs
