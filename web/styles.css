@@ -520,3 +520,5 @@ footer span {
   html { scroll-behavior: auto; }
   button { transition: none; }
 }
+
+.confirmation button[hidden] { display: none; }

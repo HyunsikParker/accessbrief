@@ -66,6 +66,26 @@ Publish only after exact confirmation:
 {"action":"publish","report":"The checkout button has no label for my screen reader.","confirmation":"Yes, publish this accessibility report."}
 ```
 
+## Download and check a receipt
+
+After confirmation, choose **Download receipt (JSON)**. A duplicate report can
+retrieve the same receipt during that tab session. Editing, clearing, or cancelling
+a report removes the download action until a report is confirmed again.
+
+The file contains reviewed page evidence, the confirmation lifecycle, and a
+canonical SHA-256 checksum. It omits the report wording, including redacted wording.
+Check a downloaded file offline with:
+
+```sh
+npm run verify-receipt -- ab_61c465e00823df42546bd359.json
+```
+
+A valid file exits with code 0. Modified contents, extra fields, malformed JSON,
+and files over 64 KiB exit with code 1. Whitespace and JSON key order do not affect
+the canonical checksum. This checks file consistency only: the receipt is unsigned,
+anyone can recompute its checksum, and the verifier does not inspect a page or
+establish who confirmed the report.
+
 ## Privacy and safety boundary
 
 This is a synthetic local demonstration. It does not inspect a private site, call a remote service, store audio, or retain report text. Reports are redacted before review, embedded instructions remain inert, and loose confirmations cannot publish.

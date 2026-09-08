@@ -100,9 +100,10 @@
 
           <section class="confirmation" aria-labelledby="confirmation-heading">
             <h2 id="confirmation-heading">Publish this report?</h2>
-            <p class="confirmation-note">This creates a receipt in this tab. Nothing is sent to a website owner.</p>
+            <p id="confirmation-note" class="confirmation-note">This creates a receipt in this tab. Nothing is sent to a website owner.</p>
             <button id="confirm-button" class="primary confirm" type="button">Yes, publish this accessibility report.</button>
             <button id="cancel-button" class="secondary cancel" type="button">Cancel</button>
+            <button id="download-receipt" class="primary" type="button" hidden disabled>Download receipt (JSON)</button>
             <p id="receipt-message" class="receipt-message" role="status" aria-live="polite"></p>
           </section>
         </aside>

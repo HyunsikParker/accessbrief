@@ -1,6 +1,7 @@
 import { beginReport, confirmReport, CONFIRMATION_PHRASE } from "./src/core.mjs";
 import { inventoryFromDocument } from "./src/dom-inventory.mjs";
 import { sampleReport } from "./src/demo-data.mjs";
+import { receiptFile } from "./src/receipt-file.mjs";
 
 const localSkillAvailable = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 
@@ -11,6 +12,8 @@ const confirmButton = document.querySelector("#confirm-button");
 const cancelButton = document.querySelector("#cancel-button");
 const reportStatus = document.querySelector("#report-status");
 const receiptMessage = document.querySelector("#receipt-message");
+const downloadButton = document.querySelector("#download-receipt");
+const confirmationNote = document.querySelector("#confirmation-note");
 const proofLine = document.querySelector("#proof-line");
 const barrierValue = document.querySelector("#barrier-value");
 const elementValue = document.querySelector("#element-value");
@@ -31,6 +34,12 @@ let revision = 0;
 let privacyChanged = false;
 let confirming = false;
 const publishedReceiptIds = new Set();
+const publishedReceipts = new Map();
+let exportingRevision = -1;
+
+function currentReceipt() {
+  return session?.receipt ?? publishedReceipts.get(session?.duplicateOf);
+}
 
 function displayWords(value) {
   const phrase = value.replaceAll("_", " ");
@@ -53,6 +62,13 @@ function renderLifecycle(states = []) {
 
 function render() {
   const verified = session?.normalized;
+  const downloadable = currentReceipt();
+  downloadButton.hidden = !downloadable;
+  downloadButton.disabled = !downloadable || exportingRevision === revision;
+  confirmButton.hidden = cancelButton.hidden = Boolean(downloadable);
+  confirmationNote.textContent = downloadable
+    ? "Download page evidence without your report wording. Checksum only: no signature or independent audit."
+    : "This creates a receipt in this tab. Nothing is sent to a website owner.";
   barrierValue.textContent = verified ? displayWords(verified.barrierCategory === "missing_label" ? "missing accessible label" : verified.barrierCategory) : "—";
   elementValue.textContent = verified ? displayWords(verified.targetId) : "—";
   pageValue.textContent = verified ? verified.evidence.selector : "—";
@@ -178,8 +194,39 @@ confirmButton.addEventListener("click", async () => {
   if (pendingRevision !== revision) return;
   session = result;
   confirming = false;
-  if (session.receipt) publishedReceiptIds.add(session.receipt.receiptId);
+  if (session.receipt) {
+    publishedReceiptIds.add(session.receipt.receiptId);
+    publishedReceipts.set(session.receipt.receiptId, session.receipt);
+  }
   render();
+});
+
+downloadButton.addEventListener("click", async () => {
+  const receipt = currentReceipt();
+  if (!receipt || exportingRevision === revision) return;
+  const pendingRevision = revision;
+  exportingRevision = pendingRevision;
+  downloadButton.disabled = true;
+  try {
+    const file = await receiptFile(receipt);
+    if (pendingRevision !== revision || currentReceipt() !== receipt) return;
+    const url = URL.createObjectURL(new Blob([file.text], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file.filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1_000);
+    receiptMessage.textContent = "Receipt " + receipt.receiptId + " · Download requested.";
+  } catch {
+    if (pendingRevision === revision) receiptMessage.textContent = "The receipt file could not be prepared. Try downloading again.";
+  } finally {
+    if (pendingRevision === revision) {
+      exportingRevision = -1;
+      downloadButton.disabled = !currentReceipt();
+    }
+  }
 });
 
 cancelButton.addEventListener("click", async () => {

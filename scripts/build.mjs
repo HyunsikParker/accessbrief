@@ -7,10 +7,15 @@ await mkdir(new URL("src/", output), { recursive: true });
 let html = await readFile(new URL("web/index.html", root), "utf8");
 let app = await readFile(new URL("web/app.mjs", root), "utf8");
 // Version imported modules too; otherwise an unchanged app URL can load old evidence logic.
-for (const name of ["core.mjs", "demo-data.mjs", "dom-inventory.mjs"]) {
-  const content = await readFile(new URL(`src/${name}`, root));
+const moduleNames = new Map();
+for (const name of ["core.mjs", "demo-data.mjs", "dom-inventory.mjs", "receipt-file.mjs"]) {
+  let content = await readFile(new URL(`src/${name}`, root), "utf8");
+  for (const [dependency, versionedDependency] of moduleNames) {
+    content = content.replaceAll(`"./${dependency}"`, `"./${versionedDependency}"`);
+  }
   const digest = createHash("sha256").update(content).digest("hex").slice(0, 16);
   const versioned = `${name.slice(0, -4)}.${digest}.mjs`;
+  moduleNames.set(name, versioned);
   await writeFile(new URL(`src/${versioned}`, output), content);
   app = app.replace(`./src/${name}`, `./src/${versioned}`);
 }

@@ -36,6 +36,7 @@ const allowlist = new Map([
   ["/src/core.mjs", ["src/core.mjs", "text/javascript; charset=utf-8"]],
   ["/src/demo-data.mjs", ["src/demo-data.mjs", "text/javascript; charset=utf-8"]],
   ["/src/dom-inventory.mjs", ["src/dom-inventory.mjs", "text/javascript; charset=utf-8"]],
+  ["/src/receipt-file.mjs", ["src/receipt-file.mjs", "text/javascript; charset=utf-8"]],
 ]);
 const payloads = new Map(
   [...allowlist].map(([path, [file, type]]) => [path, [readFileSync(resolve(PROJECT_ROOT, file)), type]]),
