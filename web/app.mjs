@@ -15,6 +15,10 @@ const proofLine = document.querySelector("#proof-line");
 const barrierValue = document.querySelector("#barrier-value");
 const elementValue = document.querySelector("#element-value");
 const pageValue = document.querySelector("#page-value");
+const privacyValue = document.querySelector("#privacy-value");
+const reviewedWording = document.querySelector("#reviewed-wording");
+const reviewBadge = document.querySelector("#review-badge");
+const reportHeading = document.querySelector("#report-sheet-heading");
 const lifecycleItems = [...document.querySelectorAll(".lifecycle li")];
 const skillProof = document.querySelector("#skill-proof");
 const skillProofButton = document.querySelector("#skill-proof-button");
@@ -22,9 +26,10 @@ const skillProofStatus = document.querySelector("#skill-proof-status");
 const skillProofTarget = document.querySelector("#skill-proof-target");
 const skillProofPolicy = document.querySelector("#skill-proof-policy");
 const skillProofReceipt = document.querySelector("#skill-proof-receipt");
-const pageContext = inventoryFromDocument(document);
-
 let session = null;
+let revision = 0;
+let privacyChanged = false;
+let confirming = false;
 const publishedReceiptIds = new Set();
 
 function displayWords(value) {
@@ -51,8 +56,13 @@ function render() {
   barrierValue.textContent = verified ? displayWords(verified.barrierCategory === "missing_label" ? "missing accessible label" : verified.barrierCategory) : "—";
   elementValue.textContent = verified ? displayWords(verified.targetId) : "—";
   pageValue.textContent = verified ? verified.evidence.selector : "—";
-  confirmButton.disabled = session?.status !== "awaiting_confirmation";
-  cancelButton.disabled = session?.status !== "awaiting_confirmation";
+  confirmButton.disabled = confirming || session?.status !== "awaiting_confirmation";
+  cancelButton.disabled = confirming || session?.status !== "awaiting_confirmation";
+  reviewedWording.textContent = session?.quotedInput ?? "Review a report to see the text after privacy checks.";
+  privacyValue.textContent = !session ? "Not checked" : privacyChanged ? "Detected identity details removed" : "No matching identity details found";
+  const states = {awaiting_confirmation: "Ready to confirm", needs_clarification: "Needs detail", blocked: "Not supported", cancelled: "Cancelled", duplicate: "Already recorded", published: "Receipt created"};
+  reviewBadge.textContent = confirming ? "Creating receipt" : states[session?.status] ?? "Not reviewed";
+  reviewBadge.dataset.status = session?.status ?? "idle";
   renderLifecycle(session?.lifecycle ?? []);
   reportStatus.textContent = "";
   receiptMessage.textContent = "";
@@ -80,10 +90,21 @@ function render() {
   }
 }
 
-function reviewReport() {
-  session = beginReport({ utterance: input.value, context: pageContext });
+function reviewReport(moveFocus = false) {
+  revision += 1;
+  confirming = false;
+  if (!input.value.trim()) {
+    session = null;
+    render();
+    reportStatus.textContent = "Describe a barrier before reviewing.";
+    input.focus();
+    return;
+  }
+  session = beginReport({ utterance: input.value, context: inventoryFromDocument(document) });
+  privacyChanged = session.quotedInput !== input.value;
   input.value = session.quotedInput;
   render();
+  if (moveFocus && session.status === "awaiting_confirmation") reportHeading.focus();
 }
 
 async function runSkillProof() {
@@ -110,24 +131,63 @@ async function runSkillProof() {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  reviewReport();
+  reviewReport(true);
+});
+
+input.addEventListener("input", () => {
+  revision += 1;
+  session = null;
+  confirming = false;
+  render();
+  reportStatus.textContent = "Report changed. Review it again before confirming.";
+});
+
+document.querySelectorAll("[data-example]").forEach((button) => {
+  button.addEventListener("click", () => {
+    input.value = {barrier: sampleReport, privacy: "Contact demo.person@example.invalid. The checkout button has no label for my screen reader.", clarify: "I cannot use this page."}[button.dataset.example];
+    reviewReport(true);
+    if (session?.status === "needs_clarification") input.focus();
+  });
 });
 
 clearButton.addEventListener("click", () => {
   input.value = "";
+  revision += 1;
+  confirming = false;
   session = null;
   render();
   input.focus();
 });
 
 confirmButton.addEventListener("click", async () => {
-  session = await confirmReport(session, CONFIRMATION_PHRASE, { publishedReceiptIds });
+  if (confirming || session?.status !== "awaiting_confirmation") return;
+  const pendingRevision = revision;
+  const reviewed = session;
+  confirming = true;
+  render();
+  let result;
+  try {
+    result = await confirmReport(reviewed, CONFIRMATION_PHRASE, { publishedReceiptIds });
+  } catch {
+    if (pendingRevision !== revision) return;
+    confirming = false;
+    render();
+    receiptMessage.textContent = "The receipt could not be created. Try confirming again.";
+    return;
+  }
+  if (pendingRevision !== revision) return;
+  session = result;
+  confirming = false;
   if (session.receipt) publishedReceiptIds.add(session.receipt.receiptId);
   render();
 });
 
 cancelButton.addEventListener("click", async () => {
-  session = await confirmReport(session, "Cancel");
+  if (confirming || session?.status !== "awaiting_confirmation") return;
+  const pendingRevision = ++revision;
+  const result = await confirmReport(session, "Cancel");
+  if (pendingRevision !== revision) return;
+  session = result;
   render();
 });
 

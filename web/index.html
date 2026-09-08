@@ -12,6 +12,7 @@
   <body>
     <header class="product-bar">
       <a class="brand" href="#main">AccessBrief</a>
+      <span class="mode-label">Alexa+ experience · Simulation</span>
     </header>
 
     <main id="main" class="page-shell">
@@ -46,7 +47,7 @@
       <div class="workbench">
         <section class="composer" aria-labelledby="composer-heading">
           <h2 id="composer-heading">Describe the barrier</h2>
-          <p class="helper">We check the current page and remove contact details before anything is shared.</p>
+          <p class="helper">Describe what stopped you. Review the page evidence before creating a local receipt.</p>
 
           <section class="page-evidence" aria-labelledby="page-evidence-heading">
             <div>
@@ -70,6 +71,12 @@
           </section>
 
           <form id="report-form" novalidate>
+            <div class="sample-actions" aria-label="Example reports">
+              <span>Try a report</span>
+              <button class="sample" data-example="barrier" type="button">Missing label</button>
+              <button class="sample" data-example="privacy" type="button">Contact details</button>
+              <button class="sample" data-example="clarify" type="button">Unclear report</button>
+            </div>
             <label for="report-input">Report</label>
             <textarea id="report-input" name="report" rows="5" autocomplete="off" required>The checkout button has no label for my screen reader.</textarea>
             <div class="composer-actions">
@@ -81,17 +88,19 @@
         </section>
 
         <aside class="report-sheet" aria-labelledby="report-sheet-heading">
-          <h2 id="report-sheet-heading">Verified report</h2>
+          <div class="sheet-heading"><p class="eyebrow">Review before confirming</p><h2 id="report-sheet-heading" tabindex="-1">Report preview</h2><span id="review-badge" class="review-badge">Not reviewed</span></div>
+          <div class="review-copy"><p class="eyebrow">Reviewed wording</p><p id="reviewed-wording">Review a report to see the text after privacy checks.</p></div>
           <dl id="evidence-list">
             <div><span aria-hidden="true">01</span><dt>Issue</dt><dd id="barrier-value">—</dd></div>
             <div><span aria-hidden="true">02</span><dt>Element</dt><dd id="element-value">—</dd></div>
             <div><span aria-hidden="true">03</span><dt>Evidence</dt><dd id="page-value">—</dd></div>
-            <div><span aria-hidden="true">04</span><dt>Privacy</dt><dd id="privacy-value">Contact details removed</dd></div>
+            <div><span aria-hidden="true">04</span><dt>Privacy</dt><dd id="privacy-value">Not checked</dd></div>
           </dl>
           <p id="proof-line" class="proof-line">Verified against the current page.</p>
 
           <section class="confirmation" aria-labelledby="confirmation-heading">
             <h2 id="confirmation-heading">Publish this report?</h2>
+            <p class="confirmation-note">This creates a receipt in this tab. Nothing is sent to a website owner.</p>
             <button id="confirm-button" class="primary confirm" type="button">Yes, publish this accessibility report.</button>
             <button id="cancel-button" class="secondary cancel" type="button">Cancel</button>
             <p id="receipt-message" class="receipt-message" role="status" aria-live="polite"></p>
