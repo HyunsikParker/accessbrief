@@ -6,7 +6,7 @@ import test from "node:test";
 import { runInNewContext } from "node:vm";
 import { fileURLToPath } from "node:url";
 import { beginReport, confirmReport, CONFIRMATION_PHRASE } from "../src/core.mjs";
-import { inventoryFromHtml } from "../src/dom-inventory.mjs";
+import { inventoryFromHtml } from "../src/html-inventory.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const html = await readFile(resolve(ROOT, "web/index.html"), "utf8");

@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beginReport, canonicalJson, confirmReport } from "../../../src/core.mjs";
-import { inventoryFromHtml } from "../../../src/dom-inventory.mjs";
+import { inventoryFromHtml } from "../../../src/html-inventory.mjs";
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const MAX_INPUT_BYTES = 32 * 1024;

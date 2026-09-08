@@ -7,10 +7,13 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "start": "node server.mjs",
-    "test": "node --test test/accessbrief.test.mjs",
+    "test": "node --test test/*.test.mjs",
     "skill": "node skills/accessbrief/scripts/accessbrief.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "parse5": "8.0.1"
   }
 }

@@ -2,7 +2,7 @@
 name: accessbrief
 description: Reviews a synthetic web accessibility report against the annotated local page, removes identity details, and creates a deterministic receipt only after exact confirmation. Use for the AccessBrief Alexa+ demo flow.
 license: MIT
-compatibility: Requires Node.js 20 or newer and this repository checkout. Uses no network services.
+compatibility: Requires Node.js 20.19 or newer and this repository checkout with `npm ci` completed. Uses no network services.
 ---
 
 # AccessBrief

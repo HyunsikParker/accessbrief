@@ -12,8 +12,9 @@ AccessBrief turns a spoken or typed accessibility barrier report into evidence t
 
 ## Requirements
 
-- Node.js 20 or newer
-- No package installation, account, API key, or network service
+- Node.js 20.19 or newer
+- Run `npm ci` once to install the pinned HTML parser
+- No account, API key, or runtime network service
 
 ## Run the web demonstration
 
@@ -40,6 +41,8 @@ identifier.
 ```sh
 npm test
 ```
+
+The Skill uses parse5 to parse inert source HTML. It shares name and role resolution with the browser path, including ARIA label references, native labels, void elements and hidden decorative text. This covers annotated synthetic fixtures; it is not a complete accessible-name or WCAG audit and does not model CSS-generated content, computed styles or platform-specific defaults.
 
 The tests cover real DOM evidence derivation, exact confirmation, deterministic receipts, identity redaction, prompt-injection blocking, and the live local Skill proof boundary.
 
