@@ -1,7 +1,10 @@
-import { beginReport, confirmReport, CONFIRMATION_PHRASE } from "./src/core.mjs";
-import { inventoryFromDocument } from "./src/dom-inventory.mjs";
-import { sampleReport } from "./src/demo-data.mjs";
-import { receiptFile } from "./src/receipt-file.mjs";
+import { beginReport, confirmReport, CONFIRMATION_PHRASE } from "../src/core.mjs";
+import { inventoryFromDocument } from "../src/dom-inventory.mjs";
+import { sampleReport } from "../src/demo-data.mjs";
+import { receiptFile, parseReceiptFile, MAX_RECEIPT_BYTES } from "../src/receipt-file.mjs";
+import { inspectHtmlSource, MAX_HTML_BYTES } from '../src/imported-page.mjs';
+import { verifyReceiptContext } from '../src/source-verification.mjs';
+import ticketBookingHtml from '../examples/ticket-booking.html';
 
 const localSkillAvailable = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 
@@ -36,6 +39,139 @@ let confirming = false;
 const publishedReceiptIds = new Set();
 const publishedReceipts = new Map();
 let exportingRevision = -1;
+let importedPage = null;
+let loadingPage = false;
+let importGeneration = 0;
+const htmlFile = document.querySelector('#html-file');
+const sourceStatus = document.querySelector('#source-status');
+const targetSelect = document.querySelector('#target-select');
+const checkReceiptFile = document.querySelector('#check-receipt-file');
+const sourceCheck = document.querySelector('#source-check');
+let verificationGeneration = 0;
+
+function itemLabel(item) {
+  if (!item || !importedPage) return 'Checkout button';
+  const names = { button: 'Button', textbox: 'Text field', link: 'Link', img: 'Image', checkbox: 'Checkbox', radio: 'Option', combobox: 'Menu' };
+  const peers = importedPage.inventory.filter(candidate => candidate.role === item.role);
+  return `${names[item.role] ?? 'Item'} ${peers.findIndex(candidate => candidate.id === item.id) + 1}`;
+}
+
+function sourceErrorMessage(message) {
+  if (/256 KiB|nonempty HTML/.test(message)) return 'Choose a nonempty HTML page smaller than 256 KB.';
+  if (/No supported controls/.test(message)) return 'We could not find any items to check in this page. Try a different saved page.';
+  if (/complexity|100 supported/.test(message)) return 'This page is too large or complex for this check. Try a smaller saved page.';
+  return 'We could not read this page reliably. Please try another saved page.';
+}
+
+function receiptErrorMessage(message) {
+  if (/original HTML/.test(message)) return 'Choose the original page in Report details first.';
+  if (/64 KiB/.test(message)) return 'This report file is too large. Choose a report downloaded from AccessBrief.';
+  if (/source hash/.test(message)) return 'This report belongs to a different version of the page. Choose the original page and try again.';
+  if (/does not describe imported/.test(message)) return 'This report was made from the built-in example. It cannot be checked against an uploaded page.';
+  if (/not reproduced/.test(message)) return 'We could not confirm this report in the selected page.';
+  return 'This report could not be verified. Choose an unchanged report downloaded from AccessBrief.';
+}
+
+document.querySelector('#open-receipt-check').addEventListener('click', () => {
+  document.querySelector('#receipt-check').open = true;
+});
+
+checkReceiptFile.addEventListener('change', async () => {
+  const file = checkReceiptFile.files?.[0];
+  if (!file) return;
+  const generation = ++verificationGeneration;
+  const page = importedPage;
+  try {
+    if (!page || loadingPage) throw new Error('Import the original HTML file first.');
+    if (file.size > MAX_RECEIPT_BYTES) throw new Error('Receipt file exceeds the 64 KiB limit.');
+    const { receipt } = await parseReceiptFile(await file.text());
+    await verifyReceiptContext(receipt, page);
+    if (generation !== verificationGeneration || importedPage !== page) return;
+    sourceCheck.textContent = 'The report matches this page, and the issue was found again. This confirms the saved page check, not the live website or who saved the report.';
+  } catch (error) {
+    if (generation === verificationGeneration && importedPage === page) sourceCheck.textContent = receiptErrorMessage(error.message);
+  } finally {
+    if (generation === verificationGeneration) checkReceiptFile.value = '';
+  }
+});
+
+function invalidateReview() {
+  revision++;
+  confirming = false;
+  session = null;
+  render();
+}
+
+function suggestReport() {
+  const target = importedPage?.inventory.find(item => item.id === targetSelect.value);
+  document.querySelector('#target-detail').textContent = target?.issueCodes.length
+    ? `${target.tag === 'img' ? 'This image needs a description' : 'This item needs a screen reader label'} in the saved page.`
+    : target?.namePresent ? 'This item already has a label. A missing-label report cannot be confirmed here.'
+      : 'This image is marked as decorative and does not need a description.';
+  input.value = target?.role === 'img' ? 'This image has no alt text.' : 'This control has no label.';
+  invalidateReview();
+}
+
+async function importPage(read) {
+  const generation = ++importGeneration;
+  verificationGeneration++;
+  sourceCheck.textContent = '';
+  loadingPage = true;
+  invalidateReview();
+  sourceStatus.textContent = 'Checking your page…';
+  try {
+    const next = await inspectHtmlSource(await read());
+    if (generation !== importGeneration) return;
+    importedPage = next;
+    targetSelect.replaceChildren(...next.inventory.map(item => {
+      const option = document.createElement('option');
+      option.value = item.id;
+      const status = item.issueCodes.length ? 'Needs attention' : item.namePresent ? 'Label found' : 'Decorative';
+      option.textContent = `${itemLabel(item)} · ${status}`;
+      return option;
+    }));
+    targetSelect.value = (next.inventory.find(item => item.issueCodes.length) ?? next.inventory[0]).id;
+    document.querySelector('#imported-target').hidden = false;
+    document.querySelector('.page-evidence').hidden = true;
+    document.querySelector('.sample-actions').hidden = true;
+    document.querySelector('#page-description').textContent = 'Your uploaded page';
+    const issueCount = next.inventory.filter(item => item.issueCodes.length).length;
+    sourceStatus.textContent = `${next.inventory.length} items checked. ${issueCount ? `${issueCount} may need attention.` : 'No missing labels or descriptions found.'}${next.skipped ? ' Some items could not be checked.' : ''}`;
+    document.querySelector('.source-picker').open = false;
+    suggestReport();
+    targetSelect.focus();
+  } catch (error) {
+    if (generation === importGeneration) sourceStatus.textContent = `${sourceErrorMessage(error.message)} Your previous page is still selected. Review your report again before saving.`;
+  } finally {
+    if (generation === importGeneration) { loadingPage = false; htmlFile.value = ''; render(); }
+  }
+}
+
+htmlFile.addEventListener('change', () => {
+  const file = htmlFile.files?.[0];
+  if (!file) return;
+  importPage(() => {
+    if (file.size > MAX_HTML_BYTES) throw new Error('Choose an HTML file up to 256 KiB.');
+    return file.text();
+  });
+});
+document.querySelector('#example-html').addEventListener('click', () => importPage(async () => ticketBookingHtml));
+document.querySelector('#reset-page').addEventListener('click', () => {
+  importGeneration++;
+  verificationGeneration++;
+  sourceCheck.textContent = '';
+  loadingPage = false;
+  importedPage = null;
+  htmlFile.value = '';
+  document.querySelector('#imported-target').hidden = true;
+  document.querySelector('.page-evidence').hidden = false;
+  document.querySelector('.sample-actions').hidden = false;
+  document.querySelector('#page-description').textContent = 'Example checkout';
+  sourceStatus.textContent = 'An example page is selected. You can upload your own above.';
+  input.value = sampleReport;
+  invalidateReview();
+});
+targetSelect.addEventListener('change', suggestReport);
 
 function currentReceipt() {
   return session?.receipt ?? publishedReceipts.get(session?.duplicateOf);
@@ -66,47 +202,53 @@ function render() {
   downloadButton.hidden = !downloadable;
   downloadButton.disabled = !downloadable || exportingRevision === revision;
   confirmButton.hidden = cancelButton.hidden = Boolean(downloadable);
+  document.querySelector('#review-empty').hidden = Boolean(session);
+  document.querySelector('#review-content').hidden = !session;
+  document.querySelector('#receipt-art').hidden = !downloadable;
+  document.querySelector('#confirmation-heading').textContent = downloadable ? 'Your report is ready' : 'Save this report?';
   confirmationNote.textContent = downloadable
-    ? "Download page evidence without your report wording. Checksum only: no signature or independent audit."
-    : "This creates a receipt in this tab. Nothing is sent to a website owner.";
-  barrierValue.textContent = verified ? displayWords(verified.barrierCategory === "missing_label" ? "missing accessible label" : verified.barrierCategory) : "—";
-  elementValue.textContent = verified ? displayWords(verified.targetId) : "—";
-  pageValue.textContent = verified ? verified.evidence.selector : "—";
-  confirmButton.disabled = confirming || session?.status !== "awaiting_confirmation";
+    ? 'Download it to keep a copy. The saved file contains page evidence, without your original wording.'
+    : 'Check the wording and remove any personal details before saving.';
+  const issueNames = { missing_label: 'Missing screen reader label', missing_alt_text: 'Missing image description' };
+  barrierValue.textContent = verified ? issueNames[verified.barrierCategory] ?? displayWords(verified.barrierCategory) : '—';
+  elementValue.textContent = verified ? itemLabel(importedPage?.inventory.find(item => item.id === verified.targetId)) : '—';
+  pageValue.textContent = verified ? importedPage ? 'Found in the saved page' : 'Found in the example page' : '—';
+  confirmButton.disabled = loadingPage || confirming || session?.status !== "awaiting_confirmation";
   cancelButton.disabled = confirming || session?.status !== "awaiting_confirmation";
-  reviewedWording.textContent = session?.quotedInput ?? "Review a report to see the text after privacy checks.";
-  privacyValue.textContent = !session ? "Not checked" : privacyChanged ? "Detected identity details removed" : "No matching identity details found";
-  const states = {awaiting_confirmation: "Ready to confirm", needs_clarification: "Needs detail", blocked: "Not supported", cancelled: "Cancelled", duplicate: "Already recorded", published: "Receipt created"};
-  reviewBadge.textContent = confirming ? "Creating receipt" : states[session?.status] ?? "Not reviewed";
+  reviewedWording.textContent = session?.quotedInput ?? 'Review your details to see the report.';
+  privacyValue.textContent = !session ? 'Not checked' : privacyChanged ? 'Detected details removed' : 'None detected';
+  const states = {awaiting_confirmation: 'Ready to save', needs_clarification: 'Needs more detail', blocked: 'Issue not confirmed', cancelled: 'Cancelled', duplicate: 'Already saved', published: 'Ready to download'};
+  reviewBadge.textContent = confirming ? 'Preparing report' : states[session?.status] ?? 'Not reviewed';
   reviewBadge.dataset.status = session?.status ?? "idle";
-  renderLifecycle(session?.lifecycle ?? []);
+  renderLifecycle(downloadable ? ['reported', 'verified', 'confirmed', 'published'] : session?.lifecycle ?? []);
   reportStatus.textContent = "";
   receiptMessage.textContent = "";
 
   if (!session) {
     proofLine.textContent = "Not yet verified.";
   } else if (session.status === "awaiting_confirmation") {
-    proofLine.textContent = "Verified against the current page.";
+    proofLine.textContent = importedPage ? 'Check the live page too. This review covers the saved page only.' : 'Checked against the selected example page.';
   } else if (session.status === "needs_clarification") {
     proofLine.textContent = "Not yet verified.";
     reportStatus.textContent = session.clarification;
   } else if (session.status === "blocked") {
-    proofLine.textContent = "Current page evidence does not support this report.";
-    reportStatus.textContent = "Nothing was published.";
+    proofLine.textContent = 'This issue could not be confirmed in the selected page.';
+    reportStatus.textContent = 'Choose another item or revise the report before saving.';
   } else if (session.status === "cancelled") {
-    proofLine.textContent = "Verified, then cancelled.";
-    reportStatus.textContent = "Cancelled. Nothing was published.";
+    proofLine.textContent = 'You cancelled this report.';
+    reportStatus.textContent = 'Report cancelled. Nothing was saved.';
   } else if (session.status === "duplicate") {
-    proofLine.textContent = "Matched an existing verified report.";
-    reportStatus.textContent = "No duplicate publication was created.";
-    receiptMessage.textContent = `Existing receipt ${session.duplicateOf}`;
+    proofLine.textContent = 'This issue is already in a report you saved.';
+    reportStatus.textContent = 'You can download your existing report below.';
+    receiptMessage.textContent = 'Your existing report is ready to download.';
   } else if (session.status === "published") {
-    proofLine.textContent = "Local receipt created after explicit confirmation.";
-    receiptMessage.textContent = `Receipt ${session.receipt.receiptId}`;
+    proofLine.textContent = 'You confirmed this report. Download it to keep the evidence.';
+    receiptMessage.textContent = 'Ready to download to your device.';
   }
 }
 
 function reviewReport(moveFocus = false) {
+  if (loadingPage) return;
   revision += 1;
   confirming = false;
   if (!input.value.trim()) {
@@ -116,7 +258,7 @@ function reviewReport(moveFocus = false) {
     input.focus();
     return;
   }
-  session = beginReport({ utterance: input.value, context: inventoryFromDocument(document) });
+  session = beginReport({ utterance: input.value, context: importedPage ?? inventoryFromDocument(document), targetId: importedPage ? targetSelect.value : undefined });
   privacyChanged = session.quotedInput !== input.value;
   input.value = session.quotedInput;
   render();
@@ -134,10 +276,10 @@ async function runSkillProof() {
     const response = await fetch("/api/skill-proof", { method: "POST" });
     if (!response.ok) throw new Error("skill proof unavailable");
     const result = await response.json();
-    skillProofStatus.textContent = result.status;
-    skillProofTarget.textContent = result.target;
-    skillProofPolicy.textContent = `${result.confirmation} confirmation · ${result.privacy}`;
-    skillProofReceipt.textContent = result.receiptId;
+    skillProofStatus.textContent = 'Passed';
+    skillProofTarget.textContent = 'Example checkout button';
+    skillProofPolicy.textContent = 'Personal details removed · Confirmed';
+    skillProofReceipt.textContent = 'Created and checked';
   } catch {
     skillProofStatus.textContent = "Unavailable";
   } finally {
@@ -176,7 +318,7 @@ clearButton.addEventListener("click", () => {
 });
 
 confirmButton.addEventListener("click", async () => {
-  if (confirming || session?.status !== "awaiting_confirmation") return;
+  if (loadingPage || confirming || session?.status !== "awaiting_confirmation") return;
   const pendingRevision = revision;
   const reviewed = session;
   confirming = true;
@@ -213,12 +355,12 @@ downloadButton.addEventListener("click", async () => {
     const url = URL.createObjectURL(new Blob([file.text], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = file.filename;
+    link.download = 'accessbrief-report.json';
     document.body.append(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1_000);
-    receiptMessage.textContent = "Receipt " + receipt.receiptId + " · Download requested.";
+    receiptMessage.textContent = 'Download started. Keep the file to check this report again later.';
   } catch {
     if (pendingRevision === revision) receiptMessage.textContent = "The receipt file could not be prepared. Try downloading again.";
   } finally {

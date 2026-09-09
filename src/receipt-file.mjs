@@ -18,17 +18,26 @@ function validShape(receipt) {
   if (!keysMatch(receipt, ["schema", "report", "confirmation", "lifecycle", "receiptId", "sha256"])) return false;
   const report = receipt.report;
   if (!keysMatch(report, ["surface", "pageId", "targetId", "targetRole", "barrierCategory", "impact", "evidence"])) return false;
-  if (!keysMatch(report.evidence, ["source", "selector", "issueCode"])) return false;
+  const imported = receipt.schema === 'accessbrief.mcp-receipt.v2';
+  if (!keysMatch(report.evidence, imported ? ['source', 'selector', 'issueCode', 'snapshotSha256'] : ["source", "selector", "issueCode"])) return false;
   if (![report.pageId, report.targetId, report.targetRole, report.impact, report.evidence.selector].every(boundedText)) return false;
-  return receipt.schema === "accessbrief.mcp-receipt.v1"
+  const validEvidence = imported
+    ? report.evidence.source === 'local_html_source'
+      && typeof report.evidence.snapshotSha256 === 'string'
+      && /^[a-f0-9]{64}$/.test(report.evidence.snapshotSha256)
+      && report.pageId === 'html_' + report.evidence.snapshotSha256.slice(0, 24)
+      && /^control_(?:[1-9]|[1-9][0-9]|100)$/.test(report.targetId)
+      && /^[a-z][a-z0-9-]*:nth-of-type\([1-9][0-9]*\)(?: > [a-z][a-z0-9-]*:nth-of-type\([1-9][0-9]*\))*$/.test(report.evidence.selector)
+      && ['missing_label', 'missing_alt_text'].includes(report.barrierCategory)
+    : report.evidence.source === 'local_dom_inventory' && /^#[A-Za-z][A-Za-z0-9_-]*$/.test(report.evidence.selector);
+  return (receipt.schema === "accessbrief.mcp-receipt.v1" || imported)
     && receipt.confirmation === "explicit"
     && Array.isArray(receipt.lifecycle)
     && JSON.stringify(receipt.lifecycle) === JSON.stringify(lifecycle)
     && report.surface === "web"
     && categories.has(report.barrierCategory)
-    && report.evidence.source === "local_dom_inventory"
+    && validEvidence
     && report.evidence.issueCode === report.barrierCategory
-    && /^#[A-Za-z][A-Za-z0-9_-]*$/.test(report.evidence.selector)
     && typeof receipt.sha256 === "string" && /^[a-f0-9]{64}$/.test(receipt.sha256)
     && typeof receipt.receiptId === "string" && /^ab_[a-f0-9]{24}$/.test(receipt.receiptId);
 }

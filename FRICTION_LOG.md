@@ -24,7 +24,7 @@ The Agent Skill route was clear, but no single reference brought those four deta
 
 ## Workaround
 
-AccessBrief uses a `SKILL.md` contract, a dependency-free Node.js entry point that accepts one JSON request on standard input, and a bounded local proof endpoint that displays the same deterministic result in the browser.
+The initial workaround used a `SKILL.md` contract, a dependency-free Node.js entry point accepting one JSON request on standard input, and a bounded local proof endpoint. The current version adds parse5 for inert HTML inspection and esbuild for the browser bundle; the original fixed proof remains available.
 
 ## Actionable suggestion
 

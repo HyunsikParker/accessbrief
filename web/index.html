@@ -3,114 +3,86 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f7f9fc">
-    <meta name="description" content="A synthetic, privacy-first accessibility barrier reporting demo.">
+    <meta name="theme-color" content="#f7f8fa">
+    <meta name="description" content="Report an accessibility issue, review what was found, and save a record on your device.">
     <title>AccessBrief</title>
     <link rel="icon" href="data:,">
+    <link rel="preload" href="./assets/fonts/IBMPlexSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to workspace</a>
     <header class="product-bar">
-      <a class="brand" href="#main">AccessBrief</a>
-      <span class="mode-label">Alexa+ experience · Simulation</span>
+      <a class="brand" href="#main"><span class="brand-mark" aria-hidden="true">a</span>AccessBrief</a>
+      <nav aria-label="Main navigation"><a class="nav-current" href="#main" aria-current="page">New report</a><a id="open-receipt-check" href="#receipt-check">Check a report</a></nav>
+      <span class="private-label"><span aria-hidden="true"></span>Private workspace</span>
     </header>
 
     <main id="main" class="page-shell">
+      <header class="task-heading"><div><h1>Report an accessibility issue</h1><p>Choose a page, describe the problem, and review before saving.</p></div><span class="workspace-label">No account needed</span></header>
       <ol id="workflow" class="lifecycle" aria-label="Report lifecycle">
-        <li data-state="reported"><span>01</span> Report</li>
-        <li data-state="verified"><span>02</span> Verify</li>
-        <li data-state="confirmed"><span>03</span> Confirm</li>
-        <li data-state="published"><span>04</span> Publish</li>
+        <li data-state="reported"><span>1</span>Describe</li><li data-state="verified"><span>2</span>Review</li><li data-state="confirmed"><span>3</span>Confirm</li><li data-state="published"><span>4</span>Save</li>
       </ol>
 
-      <header class="task-heading">
-        <h1>New accessibility report</h1>
-        <p>Checkout <span aria-hidden="true">·</span> Current page</p>
-        <p>Browser simulation on a synthetic page. Reports stay in this tab; no Alexa device or remote model is connected.</p>
-      </header>
-
       <section id="skill-proof" class="skill-proof" aria-labelledby="skill-proof-heading" hidden>
-        <div>
-          <p class="eyebrow">Developer proof</p>
-          <h2 id="skill-proof-heading">Agent Skill live run</h2>
-          <p>Executes the shipped Skill entry point against the frozen checkout case.</p>
-        </div>
-        <button id="skill-proof-button" class="secondary" type="button">Run Agent Skill</button>
-        <dl class="skill-proof-results">
-          <div><dt>Status</dt><dd id="skill-proof-status">Not run</dd></div>
-          <div><dt>Target</dt><dd id="skill-proof-target">—</dd></div>
-          <div><dt>Policy</dt><dd id="skill-proof-policy">—</dd></div>
-          <div><dt>Receipt</dt><dd id="skill-proof-receipt">—</dd></div>
-        </dl>
+        <div><h2 id="skill-proof-heading">Agent Skill live run</h2><p>Runs the installed Skill against the example page.</p></div><button id="skill-proof-button" class="secondary" type="button">Run Agent Skill</button>
+        <dl class="skill-proof-results"><div><dt>Status</dt><dd id="skill-proof-status">Not run</dd></div><div><dt>Target</dt><dd id="skill-proof-target">—</dd></div><div><dt>Policy</dt><dd id="skill-proof-policy">—</dd></div><div><dt>Receipt</dt><dd id="skill-proof-receipt">—</dd></div></dl>
       </section>
 
       <div class="workbench">
         <section class="composer" aria-labelledby="composer-heading">
-          <h2 id="composer-heading">Describe the barrier</h2>
-          <p class="helper">Describe what stopped you. Review the page evidence before creating a local receipt.</p>
+          <div class="panel-heading"><h2 id="composer-heading">Report details</h2><span class="panel-caption">Step 1</span></div>
+          <div class="page-source">
+            <div class="field-heading"><span>Your page</span><span id="page-description" class="source-chip">Example checkout</span></div>
+            <details class="source-picker">
+              <summary>Choose a page to inspect<span aria-hidden="true">⌄</span></summary>
+              <div class="source-picker-content"><p>Open a saved HTML page from your device. Maximum file size: 256 KB.</p><label for="html-file">Upload page</label><input id="html-file" type="file" accept=".html,.htm,text/html"><div class="source-actions"><button id="example-html" class="secondary" type="button">Try ticket-booking HTML</button><button id="reset-page" class="text-button" type="button">Use checkout demo</button></div><a class="inline-link" href="./examples/ticket-booking.html" download>Download an example page</a></div>
+            </details>
+            <p id="source-status" class="source-status" role="status" aria-live="polite">An example page is selected. You can upload your own above.</p>
+          </div>
 
           <section class="page-evidence" aria-labelledby="page-evidence-heading">
-            <div>
-              <p class="eyebrow">Current page evidence</p>
-              <h3 id="page-evidence-heading">Checkout action</h3>
-              <p>The rendered control has no accessible name.</p>
-            </div>
-            <div class="synthetic-page" data-accessbrief-page="checkout">
-              <span>Checkout</span>
-              <div class="evidence-action">
-                <button
-                  id="checkout"
-                  class="evidence-target"
-                  type="button"
-                  data-accessbrief-target="checkout_button"
-                  data-accessbrief-aliases="checkout button|place order button|결제 button"
-                ></button>
-                <span class="evidence-arrow" aria-hidden="true">→</span>
-              </div>
-            </div>
+            <div><h3 id="page-evidence-heading">Example checkout</h3><p>This button has no screen reader label.</p></div>
+            <div class="synthetic-page" data-accessbrief-page="checkout"><span>Checkout</span><div class="evidence-action"><button id="checkout" class="evidence-target" type="button" data-accessbrief-target="checkout_button" data-accessbrief-aliases="checkout button|place order button|결제 button"></button><span class="evidence-arrow" aria-hidden="true">→</span></div></div>
+          </section>
+
+          <section id="imported-target" class="imported-target" hidden>
+            <label for="target-select">Which item has a problem?</label><select id="target-select"></select><p id="target-detail"></p>
+            <details class="scope-details"><summary>What does this check cover?</summary><p>We check names on controls and descriptions on images in the saved page. Interactive behavior, visual contrast, and other accessibility issues need a separate review.</p></details>
           </section>
 
           <form id="report-form" novalidate>
-            <div class="sample-actions" aria-label="Example reports">
-              <span>Try a report</span>
-              <button class="sample" data-example="barrier" type="button">Missing label</button>
-              <button class="sample" data-example="privacy" type="button">Contact details</button>
-              <button class="sample" data-example="clarify" type="button">Unclear report</button>
-            </div>
-            <label for="report-input">Report</label>
-            <textarea id="report-input" name="report" rows="5" autocomplete="off" required>The checkout button has no label for my screen reader.</textarea>
-            <div class="composer-actions">
-              <button class="primary" type="submit">Review report</button>
-              <button id="clear-button" class="secondary" type="button">Reset</button>
-            </div>
+            <label for="report-input">What didn't work?</label><p id="report-help" class="helper">Describe what you were trying to do and what stopped you.</p>
+            <textarea id="report-input" name="report" rows="4" maxlength="8000" autocomplete="off" aria-describedby="report-help" required>The checkout button has no label for my screen reader.</textarea>
+            <div class="sample-actions" aria-label="Example reports"><span>Examples</span><button class="sample" data-example="barrier" type="button">Missing label</button><button class="sample" data-example="privacy" type="button">Contact details</button><button class="sample" data-example="clarify" type="button">Unclear report</button></div>
+            <div class="composer-actions"><button class="primary" type="submit">Review report <span aria-hidden="true">→</span></button><button id="clear-button" class="text-button" type="button">Clear</button></div>
           </form>
           <p id="report-status" class="report-status" role="status" aria-live="polite" aria-atomic="true"></p>
         </section>
 
         <aside class="report-sheet" aria-labelledby="report-sheet-heading">
-          <div class="sheet-heading"><p class="eyebrow">Review before confirming</p><h2 id="report-sheet-heading" tabindex="-1">Report preview</h2><span id="review-badge" class="review-badge">Not reviewed</span></div>
-          <div class="review-copy"><p class="eyebrow">Reviewed wording</p><p id="reviewed-wording">Review a report to see the text after privacy checks.</p></div>
-          <dl id="evidence-list">
-            <div><span aria-hidden="true">01</span><dt>Issue</dt><dd id="barrier-value">—</dd></div>
-            <div><span aria-hidden="true">02</span><dt>Element</dt><dd id="element-value">—</dd></div>
-            <div><span aria-hidden="true">03</span><dt>Evidence</dt><dd id="page-value">—</dd></div>
-            <div><span aria-hidden="true">04</span><dt>Privacy</dt><dd id="privacy-value">Not checked</dd></div>
-          </dl>
-          <p id="proof-line" class="proof-line">Verified against the current page.</p>
-
+          <div class="panel-heading"><h2 id="report-sheet-heading" tabindex="-1">Your report</h2><span id="review-badge" class="review-badge">Not reviewed</span></div>
+          <div id="review-empty" class="review-empty" hidden><img src="./assets/report-review.jpg" width="88" height="88" alt="" decoding="async"><h3>Ready when you are</h3><p>Review your details to see what we found.</p></div>
+          <div id="review-content">
+            <div class="review-copy"><span class="field-label">Report summary</span><p id="reviewed-wording">Review your details to see the report.</p></div>
+            <dl id="evidence-list"><div><dt>Issue</dt><dd id="barrier-value">—</dd></div><div><dt>Item</dt><dd id="element-value">—</dd></div><div><dt>Page check</dt><dd id="page-value">—</dd></div><div><dt>Personal details</dt><dd id="privacy-value">Not checked</dd></div></dl>
+            <p id="proof-line" class="proof-line">Not yet reviewed.</p>
+          </div>
           <section class="confirmation" aria-labelledby="confirmation-heading">
-            <h2 id="confirmation-heading">Publish this report?</h2>
-            <p id="confirmation-note" class="confirmation-note">This creates a receipt in this tab. Nothing is sent to a website owner.</p>
-            <button id="confirm-button" class="primary confirm" type="button">Yes, publish this accessibility report.</button>
-            <button id="cancel-button" class="secondary cancel" type="button">Cancel</button>
-            <button id="download-receipt" class="primary" type="button" hidden disabled>Download receipt (JSON)</button>
-            <p id="receipt-message" class="receipt-message" role="status" aria-live="polite"></p>
+            <div class="confirmation-title"><img id="receipt-art" src="./assets/evidence-receipt.jpg" width="44" height="44" alt="" decoding="async" loading="lazy" hidden><h3 id="confirmation-heading">Save this report?</h3></div>
+            <p id="confirmation-note" class="confirmation-note">Check the wording and remove any personal details before saving.</p>
+            <button id="confirm-button" class="primary confirm" type="button">Confirm &amp; save report</button><button id="cancel-button" class="text-button cancel" type="button">Cancel</button><button id="download-receipt" class="primary" type="button" hidden disabled>Download report</button><p id="receipt-message" class="receipt-message" role="status" aria-live="polite"></p>
           </section>
+          <p class="local-note">Nothing is sent to the website owner.</p>
         </aside>
       </div>
-    </main>
 
-    <footer><span aria-hidden="true"></span>Local simulation · No account · No network</footer>
+      <details id="receipt-check" class="receipt-check">
+        <summary><span>Check a saved report</span><span aria-hidden="true">＋</span></summary>
+        <div class="receipt-check-content"><h2>Does the report match your page?</h2><p>Select the original page in <strong>Report details</strong>, then upload the report you saved. We'll check that they match and repeat the page check.</p><label for="check-receipt-file">Upload saved report</label><input id="check-receipt-file" type="file" accept=".json,application/json"><p id="source-check" role="status" aria-live="polite"></p></div>
+      </details>
+      <footer><span>Files stay in your browser. Reports are not saved automatically.</span><details class="about-product"><summary>About this app</summary><p>This is an Alexa+ simulation with no device or remote model connected. Saved HTML is inspected locally without running its scripts or loading its images. This check is not a complete accessibility audit. Report filtering may miss personal information, so review it before saving.</p></details></footer>
+    </main>
     <script type="module" src="./app.mjs"></script>
   </body>
 </html>

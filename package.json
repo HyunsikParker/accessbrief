@@ -16,5 +16,8 @@
   },
   "dependencies": {
     "parse5": "8.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }

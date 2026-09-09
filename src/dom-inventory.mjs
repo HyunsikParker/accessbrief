@@ -16,7 +16,7 @@ function text(node, includeHidden = false) {
   if (node.tag === 'img') return attr(node, 'alt') ?? '';
   return node.text ?? (node.children ?? []).map(child => text(child, includeHidden)).join('');
 }
-function roleFor(node) {
+export function roleFor(node) {
   if (attr(node, 'role')) return attr(node, 'role').split(/\s+/)[0].toLowerCase();
   if (node.tag === 'a') return attr(node, 'href') === null ? 'generic' : 'link';
   if (node.tag === 'textarea') return 'textbox';
@@ -32,7 +32,7 @@ function roleFor(node) {
   return node.tag;
 }
 
-function nameFor(node, all, byId) {
+export function nameFor(node, all, byId) {
   const references = (attr(node, 'aria-labelledby') ?? '').trim().split(/\s+/).map(id => byId.get(id)).filter(Boolean);
   // At least one valid reference wins, even if its text alternative is empty.
   if (references.length) return compact(references.map(ref => {

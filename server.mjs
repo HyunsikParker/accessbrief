@@ -5,6 +5,8 @@ import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { browserBundle } from './scripts/browser-bundle.mjs';
+import { webAssets } from './scripts/web-assets.mjs';
 
 const PROJECT_ROOT = dirname(fileURLToPath(import.meta.url));
 const SKILL_SCRIPT = resolve(PROJECT_ROOT, "skills/accessbrief/scripts/accessbrief.mjs");
@@ -33,14 +35,17 @@ const allowlist = new Map([
   ["/", ["web/index.html", "text/html; charset=utf-8"]],
   ["/styles.css", ["web/styles.css", "text/css; charset=utf-8"]],
   ["/app.mjs", ["web/app.mjs", "text/javascript; charset=utf-8"]],
+  ['/examples/ticket-booking.html', ['examples/ticket-booking.html', 'text/html; charset=utf-8']],
   ["/src/core.mjs", ["src/core.mjs", "text/javascript; charset=utf-8"]],
   ["/src/demo-data.mjs", ["src/demo-data.mjs", "text/javascript; charset=utf-8"]],
   ["/src/dom-inventory.mjs", ["src/dom-inventory.mjs", "text/javascript; charset=utf-8"]],
   ["/src/receipt-file.mjs", ["src/receipt-file.mjs", "text/javascript; charset=utf-8"]],
 ]);
+for (const [name, type] of webAssets) allowlist.set(`/assets/${name}`, [`web/assets/${name}`, type]);
 const payloads = new Map(
   [...allowlist].map(([path, [file, type]]) => [path, [readFileSync(resolve(PROJECT_ROOT, file)), type]]),
 );
+payloads.set('/app.mjs', [Buffer.from(await browserBundle()), 'text/javascript; charset=utf-8']);
 const headers = {
   "Cache-Control": "no-store",
   "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'",

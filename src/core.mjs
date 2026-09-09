@@ -92,8 +92,8 @@ function safeBase(redactedReport, context) {
   };
 }
 
-export function beginReport({ utterance, context }) {
-  if (!utterance || !context?.pageId || !Array.isArray(context.inventory)) {
+export function beginReport({ utterance, context, targetId }) {
+  if (typeof utterance !== 'string' || !utterance.trim() || utterance.length > 8000 || !context?.pageId || !Array.isArray(context.inventory)) {
     throw new TypeError("utterance and a page inventory are required");
   }
 
@@ -111,7 +111,14 @@ export function beginReport({ utterance, context }) {
   }
 
   const categories = matchedCategories(lower);
-  const targets = matchedTargets(lower, context.inventory);
+  const targets = context.source === 'local_html_source' && targetId
+    ? context.inventory.filter(element => element.id === targetId)
+    : matchedTargets(lower, context.inventory);
+  if (context.source === 'local_html_source' && targetId
+    && [...lower.matchAll(/\bcontrol\s+(\d+)\b/g)].some(match => `control_${Number(match[1])}` !== targetId)) {
+    return { ...base, status: 'needs_clarification', reason: 'conflicting_selected_target',
+      clarification: 'The wording names a different control. Select that control or revise the report.' };
+  }
   if (categories.length !== 1 || targets.length !== 1) {
     return {
       ...base,
@@ -144,11 +151,12 @@ export function beginReport({ utterance, context }) {
       targetId: target.id,
       targetRole: target.role,
       barrierCategory: category,
-      impact: IMPACT[category],
+      impact: context.source === 'local_html_source' ? 'Source markup lacks a supported text alternative. Confirm the finding in the rendered page.' : IMPACT[category],
       evidence: {
-        source: "local_dom_inventory",
+        source: context.source === 'local_html_source' ? 'local_html_source' : 'local_dom_inventory',
         selector: target.selector,
         issueCode: category,
+        ...(context.source === 'local_html_source' ? { snapshotSha256: context.snapshotSha256 } : {}),
       },
     },
   };
@@ -171,7 +179,7 @@ export async function confirmReport(session, spokenConfirmation, options = {}) {
 
   const report = session.normalized;
   const receiptBody = {
-    schema: "accessbrief.mcp-receipt.v1",
+    schema: report.evidence.source === 'local_html_source' ? 'accessbrief.mcp-receipt.v2' : 'accessbrief.mcp-receipt.v1',
     report,
     confirmation: "explicit",
     lifecycle: ["reported", "verified", "confirmed", "published"],
