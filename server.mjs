@@ -32,6 +32,7 @@ function parsePort(argv) {
 
 const port = parsePort(process.argv.slice(2));
 const allowlist = new Map([
+  ['/demo.html', ['web/demo.html', 'text/html; charset=utf-8']],
   ["/", ["web/index.html", "text/html; charset=utf-8"]],
   ["/styles.css", ["web/styles.css", "text/css; charset=utf-8"]],
   ["/app.mjs", ["web/app.mjs", "text/javascript; charset=utf-8"]],

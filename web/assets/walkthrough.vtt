@@ -1,0 +1,40 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:07.430
+AccessBrief helps people report an accessibility issue and keep evidence they can check again. This is a local Alexa plus simulation.
+
+00:00:07.430 --> 00:00:12.563
+Choose a saved page from your device. The page stays in your browser.
+
+00:00:12.563 --> 00:00:20.585
+This ticket booking example has five items to check. Two may need attention. No special page annotations are required.
+
+00:00:20.585 --> 00:00:27.370
+The first button needs a screen reader label. Select the item and describe what did not work.
+
+00:00:27.370 --> 00:00:35.537
+The example email address is removed before review. The summary explains the issue, the affected item, and what the page check found.
+
+00:00:35.537 --> 00:00:43.999
+Confirm before saving. Download a report with page evidence, without your original wording. Nothing is sent to the website owner.
+
+00:00:43.999 --> 00:00:52.216
+Upload the saved report to check it again. AccessBrief confirms that the page matches and finds the same issue.
+
+00:00:52.216 --> 00:01:00.281
+This other button already has a label. AccessBrief cannot confirm a missing label here, so it does not let this report be saved.
+
+00:01:00.281 --> 00:01:06.401
+The same flow checks a missing image description. Images marked as decorative are treated separately.
+
+00:01:06.401 --> 00:01:10.530
+You can cancel before saving. No report is created.
+
+00:01:10.530 --> 00:01:19.084
+An earlier report does not match a changed page. The app asks for the original version instead of claiming the old evidence still applies.
+
+00:01:19.084 --> 00:01:28.312
+The executable Agent Skill uses the same reporting core. This live local check verifies its example report, privacy filter, confirmation, and receipt.
+
+00:01:28.312 --> 00:01:36.160
+This checks names and image descriptions in saved HTML. It does not replace a full accessibility audit, and the live page still needs review.

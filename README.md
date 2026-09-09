@@ -16,6 +16,8 @@ AccessBrief helps a website maintainer turn an accessibility barrier report into
 - Run `npm ci` once to install the pinned HTML parser and browser bundler
 - No account, API key, or runtime network service
 
+[Watch the 96-second walkthrough](https://hyunsikparker.github.io/accessbrief/demo.html).
+
 ## Run the web demonstration
 
 [Open the browser demo](https://hyunsikparker.github.io/accessbrief/). It runs on

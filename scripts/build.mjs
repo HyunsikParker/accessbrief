@@ -7,6 +7,7 @@ const root = new URL("../", import.meta.url);
 const output = new URL("dist/", root);
 await mkdir(new URL("src/", output), { recursive: true });
 let html = await readFile(new URL("web/index.html", root), "utf8");
+let demo = await readFile(new URL("web/demo.html", root), "utf8");
 let app = Buffer.from(await browserBundle()).toString('utf8');
 let css = await readFile(new URL('web/styles.css', root), 'utf8');
 await mkdir(new URL('assets/fonts/', output), { recursive: true });
@@ -17,6 +18,7 @@ for (const [name] of webAssets) {
   const versioned = `${name.slice(0, dot)}.${digest}${name.slice(dot)}`;
   await writeFile(new URL(`assets/${versioned}`, output), content);
   html = html.replaceAll(`./assets/${name}`, `./assets/${versioned}`);
+  demo = demo.replaceAll(`./assets/${name}`, `./assets/${versioned}`);
   css = css.replaceAll(`./assets/${name}`, `./assets/${versioned}`);
 }
 // Version imported modules too; otherwise an unchanged app URL can load old evidence logic.
@@ -41,8 +43,10 @@ for (const name of ["app.mjs", "styles.css"]) {
   const versioned = `${name.slice(0, dot)}.${digest}${name.slice(dot)}`;
   await writeFile(new URL(versioned, output), content);
   html = html.replace(`./${name}`, `./${versioned}`);
+  demo = demo.replace(`./${name}`, `./${versioned}`);
 }
 await writeFile(new URL("index.html", output), html);
+await writeFile(new URL("demo.html", output), demo);
 await writeFile(new URL(".nojekyll", output), "");
 await mkdir(new URL('examples/', output), { recursive: true });
 await writeFile(new URL('examples/ticket-booking.html', output), await readFile(new URL('examples/ticket-booking.html', root)));

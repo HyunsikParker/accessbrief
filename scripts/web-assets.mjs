@@ -1,4 +1,6 @@
 export const webAssets = [
+  ['walkthrough.mp4', 'video/mp4'],
+  ['walkthrough.vtt', 'text/vtt; charset=utf-8'],
   ['report-review.jpg', 'image/jpeg'],
   ['evidence-receipt.jpg', 'image/jpeg'],
   ['fonts/IBMPlexSans-Regular.woff2', 'font/woff2'],
